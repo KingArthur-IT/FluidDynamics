@@ -329,7 +329,7 @@ class Simulation{
     Animation() {
         this.grid.gridUpdateProperties(this.mouse, this.cfg.force_radius);
         //update particles position, color and size
-        let particleStep = 1.0;
+        let particleStep = 0.1;
         this.updateParticlesProperties(particleStep);
         
         //-- draw background to clear the domain with opacity --
