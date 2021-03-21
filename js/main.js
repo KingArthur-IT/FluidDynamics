@@ -22,8 +22,12 @@ class Cell{
             
         if (distance < forceRadius) {
             let magnitude = 1 - distance / forceRadius;
-            this.velocity.x += -velocityStep * magnitude * (mouse.mouseUpPos.x - mouse.mouseDownPos.x);
-            this.velocity.y +=  velocityStep * magnitude * (mouse.mouseUpPos.y - mouse.mouseDownPos.y);
+            let mouseMoveX = mouse.mouseUpPos.x - mouse.mouseDownPos.x;
+            let mouseMoveY = mouse.mouseUpPos.y - mouse.mouseDownPos.y;
+            if (Math.abs(mouseMoveX) > 10) { mouseMoveX = Math.sign(mouseMoveX) * 10.0 };
+            if (Math.abs(mouseMoveY) > 10) { mouseMoveY = Math.sign(mouseMoveY) * 10.0 };
+            this.velocity.x += -velocityStep * magnitude * mouseMoveX; //(mouse.mouseUpPos.x - mouse.mouseDownPos.x);
+            this.velocity.y += velocityStep * magnitude * mouseMoveY; //(mouse.mouseUpPos.y - mouse.mouseDownPos.y);
             
             this.color = mouse.color;
         }
@@ -142,7 +146,7 @@ class Simulation{
         this.cnv = canvas;
         this.ctx = contex;
         this.cfg = {
-            particleColor: 100,
+            particleColor: 200,
             particlesCount: 17000,
             force_radius: 30
         }
@@ -329,7 +333,7 @@ class Simulation{
     Animation() {
         this.grid.gridUpdateProperties(this.mouse, this.cfg.force_radius);
         //update particles position, color and size
-        let particleStep = 0.1;
+        let particleStep = 1.0;
         this.updateParticlesProperties(particleStep);
         
         //-- draw background to clear the domain with opacity --
