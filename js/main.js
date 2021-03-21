@@ -166,6 +166,10 @@ class Simulation{
     setAnimationProperties() {
         this.cnv.width  = innerWidth;
         this.cnv.height = innerHeight;
+        if (this.cnv.width < 800) {
+            this.cfg.force_radius = 20;
+            this.cfg.particlesCount = 10000;
+        };
         this.grid.Initialize(innerWidth, innerHeight, this.cfg.particleColor);
         this.InitializeParticles();
     }
@@ -450,7 +454,5 @@ class Simulation{
             simulation.mouse.mouseDownPos.y = e.touches[0].pageY - rect.top;
         }
     }
-
-
 
 }());
