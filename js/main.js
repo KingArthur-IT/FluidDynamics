@@ -142,7 +142,7 @@ class Simulation{
         this.cnv = canvas;
         this.ctx = contex;
         this.cfg = {
-            particleColor: 200,
+            particleColor: 100,
             particlesCount: 17000,
             force_radius: 30
         }
@@ -446,8 +446,8 @@ class Simulation{
             And this sets the mouse coordinates to where the first touch is. Since we're using pageX
             and pageY, we need to subtract the top and left offset of the canvas so the values are correct.
             */
-            simulation.mouse.mouseDownPos.x = e.touches[0].pageX - rect.left;
-            simulation.mouse.mouseDownPos.y = e.touches[0].pageY - rect.top;
+            simulation.mouse.mouseDownPos.x = e.touches[0].pageX;// - rect.left;
+            simulation.mouse.mouseDownPos.y = e.touches[0].pageY;// - rect.top;
         }
     }
 
