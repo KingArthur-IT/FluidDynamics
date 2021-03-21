@@ -170,6 +170,7 @@ class Simulation{
     setAnimationProperties() {
         this.cnv.width  = innerWidth;
         this.cnv.height = innerHeight;
+        if (innerWidth < 400) { this.cfg.force_radius = 10;}
         this.grid.Initialize(innerWidth, innerHeight, this.cfg.particleColor);
         this.InitializeParticles();
     }
