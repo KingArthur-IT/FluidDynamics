@@ -405,8 +405,13 @@ class Simulation{
     let simulation = new Simulation(cnv, ctx);
 
     window.addEventListener("mousedown", mouse_down_handler);
+    window.addEventListener("touchstart", mouse_down_handler);
+
     window.addEventListener("mouseup", mouse_up_handler);
+    window.addEventListener("touchend", mouse_up_handler);
+
     cnv.addEventListener("mousemove", mouse_move_handler);
+    cnv.addEventListener("touchmove", touch_move_handler);
 
     function mouse_down_handler(e) {
         simulation.mouse.isDown = true;
@@ -429,4 +434,23 @@ class Simulation{
             simulation.mouse.mouseDownPos.y = e.offsetY;
         }
     }
-}()); 
+    function touch_move_handler(e) {
+        if (simulation.mouse.isDown) {
+            simulation.mouse.mouseUpPos.x = simulation.mouse.mouseDownPos.x;
+            simulation.mouse.mouseUpPos.y = simulation.mouse.mouseDownPos.y;
+
+            //This line gets the coordinates for where the canvas is positioned on the screen.
+            let rect = cnv.getBoundingClientRect();
+
+            /*
+            And this sets the mouse coordinates to where the first touch is. Since we're using pageX
+            and pageY, we need to subtract the top and left offset of the canvas so the values are correct.
+            */
+            simulation.mouse.mouseDownPos.x = e.touches[0].pageX - rect.left;
+            simulation.mouse.mouseDownPos.y = e.touches[0].pageY - rect.top;
+        }
+    }
+
+
+
+}());
