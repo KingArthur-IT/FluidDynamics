@@ -170,7 +170,7 @@ class Simulation{
     setAnimationProperties() {
         this.cnv.width  = innerWidth;
         this.cnv.height = innerHeight;
-        if (innerWidth < 400) { this.cfg.force_radius = 10;}
+        if (innerWidth < 400) { this.cfg.force_radius = 5;}
         this.grid.Initialize(innerWidth, innerHeight, this.cfg.particleColor);
         this.InitializeParticles();
     }
@@ -313,7 +313,7 @@ class Simulation{
 
             //get the hsl index of the color
             let hslColor = this.grid.cells[col][row].color;
-            let { R, G, B } = this.hslToRGB(hslColor, 1.0, 0.5);
+            let { R, G, B } = this.hslToRGB(hslColor, 1.0, 0.1);
             this.color[i * 4] = R;
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
