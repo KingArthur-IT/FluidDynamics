@@ -367,7 +367,10 @@ class Simulation{
     setAnimationProperties() {
         this.cnv.width  = innerWidth;
         this.cnv.height = innerHeight;
-        if (innerWidth < 400) { this.cfg.force_radius = 15;}
+        if (innerWidth < 400) {
+            this.cfg.force_radius = 15;
+            this.cfg.particlesCount = 8000;
+        }
         this.grid.Initialize(innerWidth, innerHeight, this.cfg.particleColor);
         this.InitializeParticles();
     }
@@ -515,7 +518,7 @@ class Simulation{
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
             //opacity of the color
-            this.color[i * 4 + 3] = 0.6;
+            this.color[i * 4 + 3] = 0.1;
             //particle size
             this.particleSizes[i] = 1.0;            
             if (magnitude > 0.05) {
@@ -605,7 +608,7 @@ class Simulation{
 }
 (function () {
     cnv = document.getElementById('canvas');
-    ctx = cnv.getContext('webgl', { preserveDrawingBuffer: true});
+    ctx = cnv.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: true});
     let simulation = new Simulation(cnv, ctx);
 
     window.addEventListener("mousedown", mouse_down_handler);
