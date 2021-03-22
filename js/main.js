@@ -518,7 +518,7 @@ class Simulation{
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
             //opacity of the color
-            this.color[i * 4 + 3] = 0.1;
+            this.color[i * 4 + 3] = 0.5;
             //particle size
             this.particleSizes[i] = 1.0;            
             if (magnitude > 0.05) {
