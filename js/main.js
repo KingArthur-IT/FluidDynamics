@@ -346,7 +346,8 @@ class Simulation{
             particleColor: 150,
             particlesCount: 17000,
             force_radius: 30,
-            particleStep: 1.0
+            particleStep: 1.0,
+            opacityForStatic: 0.3
         }
     
         this.particles = [];
@@ -522,7 +523,7 @@ class Simulation{
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
             //opacity of the color
-            this.color[i * 4 + 3] = 0.7;
+            this.color[i * 4 + 3] = this.cfg.opacityForStatic;
             //particle size
             this.particleSizes[i] = 1.0;            
             if (magnitude > 0.05) {
