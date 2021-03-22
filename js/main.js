@@ -343,12 +343,14 @@ class Simulation{
         this.cnv = canvas;
         this.ctx = contex;
         this.cfg = {
-            particleColor: 200,
+            particleColor: 150,
             particlesCount: 17000,
-            force_radius: 30
+            force_radius: 30,
+            particleStep: 1.0
         }
     
         this.particles = [];
+        
         this.color = [];
         this.particleSizes = [];
         this.mouse = new Mouse();        
@@ -365,11 +367,13 @@ class Simulation{
     }
     //Set canvas width and height, grid sizes and particles
     setAnimationProperties() {
+        
         this.cnv.width  = innerWidth;
         this.cnv.height = innerHeight;
         if (innerWidth < 400) {
             this.cfg.force_radius = 15;
             this.cfg.particlesCount = 8000;
+            this.cfg.particleStep = 0.5;
         }
         this.grid.Initialize(innerWidth, innerHeight, this.cfg.particleColor);
         this.InitializeParticles();
@@ -518,7 +522,7 @@ class Simulation{
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
             //opacity of the color
-            this.color[i * 4 + 3] = 0.5;
+            this.color[i * 4 + 3] = 0.7;
             //particle size
             this.particleSizes[i] = 1.0;            
             if (magnitude > 0.05) {
@@ -536,8 +540,7 @@ class Simulation{
     Animation() {
         this.grid.gridUpdateProperties(this.mouse, this.cfg.force_radius);
         //update particles position, color and size
-        let particleStep = 1.0;
-        this.updateParticlesProperties(particleStep);
+        this.updateParticlesProperties(this.cfg.particleStep);
         
         //-- draw background to clear the domain with opacity --
         //set drawing mode to 0
