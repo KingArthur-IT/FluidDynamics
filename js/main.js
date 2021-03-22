@@ -1,4 +1,201 @@
-//color in hsl
+
+class LBMCell{
+    constructor(color) {
+        this.pos = { x: 0, y: 0 };
+        this.velocity = { x: 0, y: 0 };
+        this.dencity = 1.0;
+        this.color = color; //Color is hsl index        
+    }
+    //Update velocity of the current cell
+    updateVelocity(mouse, forceRadius, velocityStep) {
+        let dx = this.pos.x - mouse.mouseUpPos.x;
+        let dy = this.pos.y - mouse.mouseUpPos.y;
+        let distance = Math.sqrt(dy * dy + dx * dx);
+            
+        if (distance < forceRadius) {
+            let magnitude = 1 - distance / forceRadius;
+            let mouseMoveX = mouse.mouseUpPos.x - mouse.mouseDownPos.x;
+            let mouseMoveY = mouse.mouseUpPos.y - mouse.mouseDownPos.y;
+            if (Math.abs(mouseMoveX) > 10) { mouseMoveX = Math.sign(mouseMoveX) * 10.0 };
+            if (Math.abs(mouseMoveY) > 10) { mouseMoveY = Math.sign(mouseMoveY) * 10.0 };
+            this.velocity.x += -velocityStep * magnitude * mouseMoveX; //(mouse.mouseUpPos.x - mouse.mouseDownPos.x);
+            this.velocity.y += velocityStep * magnitude * mouseMoveY; //(mouse.mouseUpPos.y - mouse.mouseDownPos.y);
+            
+            this.color = mouse.color;
+        }
+    }
+}
+class LBMGrid{
+    constructor() {
+        this.width  = 0;
+        this.height = 0;
+        this.cols_count = 0;
+        this.rows_count = 0;
+        this.cell_size = 5;
+        this.cells = [];
+
+        //matrix for D2Q9 LBM model
+        this.weightCoeff = [ 4. / 9., 1. / 9., 1. / 9., 1. / 9., 1. / 9., 1. / 36., 1. / 36., 1. / 36., 1. / 36. ];
+        this.gridCoordsX =  [ 0, 1, 0, -1, 0, 1, -1, -1, 1 ];
+        this.gridCoordsY =  [ 0, 0, 1, 0, -1, 1, 1, -1, -1 ];
+
+        //Матриці зміщення матриці функції розподілу
+        this.distrMatrixMoveX = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+        this.distrMatrixMoveY = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+        this.distributionMatrix = [];
+
+    }
+    Initialize(w, h, initColor) {
+        this.cells.length = 0;
+        this.width  = w;
+        this.height = h;
+        this.cols_count = (this.width / this.cell_size);
+        this.rows_count = (this.height / this.cell_size);
+
+        for (let i = 0; i < parseInt(this.cols_count); i++){
+            this.cells[i] = [];
+            this.distributionMatrix[i] = [];
+            for (let j = 0; j < parseInt(this.rows_count); j++){
+                this.cells[i].push(new LBMCell(initColor));
+                this.cells[i][j].pos.x = i * this.cell_size;
+                this.cells[i][j].pos.y = j * this.cell_size;
+                this.distributionMatrix[i][j] = [];
+                for (let k = 0; k < 9; k++){
+                    this.distributionMatrix[i][j].push(this.weightCoeff[k]);
+                }
+                //[4 / 9, 1 / 9, 1 / 9, 1 / 9, 1 / 9, 1 / 36, 1 / 36, 1 / 36, 1 / 36];
+            }
+        }
+
+        //init lbm
+        //Розміри області та сітка
+        this.iGridN = 50;
+		this.domainSizeX = this.cols_count / this.iGridN;
+		this.domainSizeY = this.rows_count / this.iGridN;
+
+		//Параметри задачі
+		this.Re = 100;
+		this.L = 1.0;
+		this.inletVelocity = 0.1;
+		this.viscosity = this.inletVelocity * this.L / this.Re;
+
+		//Параметри методу
+		this.tau = 0.6;
+		this.dt = ((this.tau - 0.5) / (this.iGridN * this.iGridN * 3 * this.viscosity));
+		this.c = 1.0 / (this.iGridN * this.dt);
+		this.cs = this.c / Math.sqrt(3);
+    }
+    streamStep() {
+        for (let k = 1; k < 9; k++)
+	    {
+            //Перенос за рахунок зміщення точок відліку
+            this.distrMatrixMoveX[k] -= this.gridCoordsX[k];
+            this.distrMatrixMoveY[k] -= this.gridCoordsY[k];
+            if (this.distrMatrixMoveX[k] > this.cols_count - 1) {this.distrMatrixMoveX[k] -= this.cols_count;}
+            if (this.distrMatrixMoveX[k] < 1 - this.cols_count) {this.distrMatrixMoveX[k] += this.cols_count;}
+            if (this.distrMatrixMoveY[k] > this.rows_count - 1) {this.distrMatrixMoveY[k] -= this.rows_count;}
+            if (this.distrMatrixMoveY[k] < 1 - this.rows_count) {this.distrMatrixMoveY[k] += this.rows_count;}
+	    };//for k
+    }
+    colorDiffusion() {
+        for (let i = 1; i < parseInt(this.cols_count) - 1; i++){ 
+            for (let j = 1; j < parseInt(this.rows_count) - 1; j++){
+                let colorSum = this.cells[i][j].color
+                    + this.cells[i - 1][j - 1].color
+                    + this.cells[i - 1][j].color
+                    + this.cells[i - 1][j + 1].color
+                    + this.cells[i + 1][j - 1].color
+                    + this.cells[i + 1][j].color
+                    + this.cells[i + 1][j + 1].color
+                    + this.cells[i][j - 1].color
+                    + this.cells[i][j + 1].color;
+                this.cells[i][j].color = colorSum /= 9;
+            }
+        }
+    }
+    getF(i, j, k) {
+        let ireal = i + this.distrMatrixMoveX[k];
+        let jreal = j + this.distrMatrixMoveY[k];
+
+        if (ireal >= parseInt(this.cols_count)) ireal -= parseInt(this.cols_count);
+        if (ireal < 0) ireal += parseInt(this.cols_count);
+
+        if (jreal >= parseInt(this.rows_count)) jreal -= parseInt(this.rows_count);
+        if (jreal < 0) jreal += parseInt(this.rows_count);
+
+        return this.distributionMatrix[ireal][jreal][k];
+    }
+    setF(value, i, j, k) {
+        let ireal = i + this.distrMatrixMoveX[k];
+        let jreal = j + this.distrMatrixMoveY[k];
+
+        if (ireal >= parseInt(this.cols_count)) ireal -= parseInt(this.cols_count);
+        if (ireal < 0) ireal += parseInt(this.cols_count);
+
+        if (jreal >= parseInt(this.rows_count)) jreal -= parseInt(this.rows_count);
+        if (jreal < 0) jreal += parseInt(this.rows_count);
+
+        this.distributionMatrix[ireal][jreal][k] = value;
+    }
+    collisionStep() {
+        let feq = 0.0;
+        let rho = 0.0; let ux = 0.0; let uy = 0.0; let u = 0.0;
+
+        for (let i = 0; i <  parseInt(this.cols_count) - 1; i++)
+            for (let j = 0; j < parseInt(this.rows_count) - 1; j++)
+            {
+                rho = 0; ux = 0; uy = 0;
+                for (let k = 0; k < 9; k++) { rho += this.getF(i, j, k); };
+                this.cells[i][j].dencity = rho;
+                ux = this.c * (this.getF(i, j, 1) + this.getF(i, j, 5) + this.getF(i, j, 8) 
+                        - this.getF(i, j, 3) - this.getF(i, j, 6) - this.getF(i, j, 7)) / rho;
+                uy = this.c * (this.getF(i, j, 2) + this.getF(i, j, 5) + this.getF(i, j, 6) 
+                        - this.getF(i, j, 4) - this.getF(i, j, 8) - this.getF(i, j, 7)) / rho;
+                this.cells[i][j].velocity.x = ux; this.cells[i][j].velocity.y = uy;
+                //fVelocityX[i, j] = ux; fVelocityY[i, j] = uy;
+                u = ux * ux + uy * uy;
+
+                for (let k = 0; k < 9; k++)
+                {
+                    let cu = 3.0 * (this.c * this.gridCoordsX[k] * ux + this.c * this.gridCoordsY[k] * uy) / (this.c * this.c);
+                    feq = rho * this.weightCoeff[k] * (1.0 + cu + 0.5 * cu * cu - 1.5 * u / (this.c * this.c));
+                    this.setF(this.getF(i, j, k) - (this.getF(i, j, k) - feq) / this.tau, i, j, k);
+                }
+            }
+    }
+    gridUpdateProperties(mouse, forceRadius) {
+        for (let i = 0; i < parseInt(this.cols_count); ++i) {
+            for (let j = 0; j < parseInt(this.rows_count); ++j) {
+                if (mouse.isDown) {
+                    this.cells[i][j].updateVelocity(mouse, forceRadius, 1);
+                }
+            }
+        }
+        this.velToF();
+        this.collisionStep();
+        this.streamStep();
+        this.colorDiffusion();
+    }
+    velToF() {
+        for (let i = 0; i < parseInt(this.cols_count); ++i) {
+            for (let j = 0; j < parseInt(this.rows_count); ++j) {
+                let ux = this.cells[i][j].velocity.x;
+                let uy = this.cells[i][j].velocity.y;
+
+                this.setF(4.0 * (1.0 - 1.5 * ux * ux - 1.5 * uy * uy) / 9.0, i, j, 0);
+                this.setF((1.0 + 3.0 * ux + 3.0 * ux * ux - 1.5 * uy * uy) / 9.0, i, j, 1);
+                this.setF((1.0 + 3.0 * uy + 3.0 * uy * uy - 1.5 * ux * ux) / 9.0, i, j, 2);
+                this.setF((1.0 - 3.0 * ux + 3.0 * ux * ux - 1.5 * uy * uy) / 9.0, i, j, 3);
+                this.setF((1.0 - 3.0 * uy + 3.0 * uy * uy - 1.5 * ux * ux) / 9.0, i, j, 4);
+                this.setF((1.0 + 3.0 * ux + 3.0 * uy + 3.0 * ux * ux + 3.0 * uy * uy + 9.0 * ux * uy) / 36.0, i, j, 5);
+                this.setF((1.0 - 3.0 * ux + 3.0 * uy + 3.0 * ux * ux + 3.0 * uy * uy - 9.0 * ux * uy) / 36.0, i, j, 6);
+                this.setF((1.0 - 3.0 * ux - 3.0 * uy + 3.0 * ux * ux + 3.0 * uy * uy + 9.0 * ux * uy) / 36.0, i, j, 7);
+                this.setF((1.0 + 3.0 * ux - 3.0 * uy + 3.0 * ux * ux + 3.0 * uy * uy - 9.0 * ux * uy) / 36.0, i, j, 8);
+            }
+        }
+    }
+}
 class Mouse{
     constructor() {
         this.mouseDownPos = { x: 0, y: 0 };
@@ -318,14 +515,16 @@ class Simulation{
             this.color[i * 4 + 1] = G;
             this.color[i * 4 + 2] = B;
             //opacity of the color
-            this.color[i * 4 + 3] = 1.0;
+            this.color[i * 4 + 3] = 0.6;
             //particle size
             this.particleSizes[i] = 1.0;            
             if (magnitude > 0.05) {
                 this.particleSizes[i] = 1.5;
+                this.color[i * 4 + 3] = 0.8;
             };
             if (magnitude > 0.2) {
                 this.particleSizes[i] = 2.0;
+                this.color[i * 4 + 3] = 1.0;
             };
 
         }
