@@ -399,8 +399,7 @@ class Simulation{
         this.shaderProgram = this.createShaders(this.ctx);
         this.createBuffer(this.ctx, this.shaderProgram, "coordinates", "pColor", "pSize");
     }
-    //mod == 1 is for particles drawing, == 0 for clear with opacity
-    createShaders(gl) {        
+    get vertexShaderCode() {
         let vertCode =`
         attribute vec2 coordinates;
         attribute vec4 pColor;
@@ -417,6 +416,9 @@ class Simulation{
                 vColor = vec4(0.0, 0.0, 0.0, 0.12);
         }
         `;
+        return vertCode;
+    }
+    get fragmentShaderCode() {
         let fragCode = `
         varying highp vec4 vColor;
         
@@ -424,11 +426,14 @@ class Simulation{
             gl_FragColor = vColor;
         }
         `;
-
+        return fragCode;
+    }
+    //mod == 1 is for particles drawing, == 0 for clear with opacity
+    createShaders(gl) {
         let vertShader = gl.createShader(gl.VERTEX_SHADER); //Create shader object
         let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(vertShader, vertCode); //Attach vertex shader source code
-        gl.shaderSource(fragShader, fragCode);
+        gl.shaderSource(vertShader, this.vertexShaderCode); //Attach vertex shader source code
+        gl.shaderSource(fragShader, this.fragmentShaderCode);
 
         gl.compileShader(vertShader); //Compile the vertex shader
         gl.compileShader(fragShader);
