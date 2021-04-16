@@ -1,30 +1,6 @@
-
-class LBMCell{
-    constructor(color) {
-        this.pos = { x: 0, y: 0 };
-        this.velocity = { x: 0, y: 0 };
-        this.dencity = 1.0;
-        this.color = color; //Color is hsl index        
-    }
-    //Update velocity of the current cell
-    updateVelocity(mouse, forceRadius, velocityStep) {
-        let dx = this.pos.x - mouse.mouseUpPos.x;
-        let dy = this.pos.y - mouse.mouseUpPos.y;
-        let distance = Math.sqrt(dy * dy + dx * dx);
-            
-        if (distance < forceRadius) {
-            let magnitude = 1 - distance / forceRadius;
-            let mouseMoveX = mouse.mouseUpPos.x - mouse.mouseDownPos.x;
-            let mouseMoveY = mouse.mouseUpPos.y - mouse.mouseDownPos.y;
-            if (Math.abs(mouseMoveX) > 10) { mouseMoveX = Math.sign(mouseMoveX) * 10.0 };
-            if (Math.abs(mouseMoveY) > 10) { mouseMoveY = Math.sign(mouseMoveY) * 10.0 };
-            this.velocity.x += -velocityStep * magnitude * mouseMoveX; //(mouse.mouseUpPos.x - mouse.mouseDownPos.x);
-            this.velocity.y += velocityStep * magnitude * mouseMoveY; //(mouse.mouseUpPos.y - mouse.mouseDownPos.y);
-            
-            this.color = mouse.color;
-        }
-    }
-}
+/*
+    Copyright (c) 2021 Artem Ostapenko
+*/
 class LBMGrid{
     constructor() {
         this.width  = 0;
